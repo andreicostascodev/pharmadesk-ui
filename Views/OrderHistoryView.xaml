@@ -45,10 +45,10 @@
                                         <Style TargetType="Border">
                                             <Setter Property="Background" Value="#33FCA311"/>
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Status}" Value="Completed">
+                                                <DataTrigger Binding="{Binding Status, StringFormat={}{0}}" Value="Completed">
                                                     <Setter Property="Background" Value="#3322C55E"/>
                                                 </DataTrigger>
-                                                <DataTrigger Binding="{Binding Status}" Value="Cancelled">
+                                                <DataTrigger Binding="{Binding Status, StringFormat={}{0}}" Value="Cancelled">
                                                     <Setter Property="Background" Value="#33EF4444"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
@@ -59,10 +59,10 @@
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="Foreground" Value="#FFFCA311"/>
                                                 <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding Status}" Value="Completed">
+                                                    <DataTrigger Binding="{Binding Status, StringFormat={}{0}}" Value="Completed">
                                                         <Setter Property="Foreground" Value="#FF22C55E"/>
                                                     </DataTrigger>
-                                                    <DataTrigger Binding="{Binding Status}" Value="Cancelled">
+                                                    <DataTrigger Binding="{Binding Status, StringFormat={}{0}}" Value="Cancelled">
                                                         <Setter Property="Foreground" Value="#FFEF4444"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>

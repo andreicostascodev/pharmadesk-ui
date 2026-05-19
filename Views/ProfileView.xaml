@@ -45,7 +45,7 @@
                         <!-- Member Since -->
                         <StackPanel HorizontalAlignment="Center">
                             <TextBlock Text="{Binding MemberSince}" Style="{StaticResource KpiValue}"
-                                       FontSize="20" HorizontalAlignment="Center"/>
+                                       HorizontalAlignment="Center"/>
                             <TextBlock Text="Member Since" Style="{StaticResource CardLabel}"
                                        HorizontalAlignment="Center"/>
                         </StackPanel>
@@ -64,8 +64,14 @@
                                  VerticalContentAlignment="Center"
                                  Background="{DynamicResource SurfaceBrush}"
                                  Foreground="{DynamicResource TextPrimaryBrush}"
-                                 BorderBrush="{DynamicResource ThemeBorderBrush}"
-                                 Margin="0,0,0,16"/>
+                                 Margin="0,0,0,16">
+                            <TextBox.Style>
+                                <Style TargetType="TextBox">
+                                    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderBrush}"/>
+                                    <Setter Property="BorderThickness" Value="1"/>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
 
                         <!-- Email -->
                         <TextBlock Text="EMAIL" Style="{StaticResource CardLabel}" Margin="0,0,0,6"/>
@@ -74,8 +80,14 @@
                                  VerticalContentAlignment="Center"
                                  Background="{DynamicResource SurfaceBrush}"
                                  Foreground="{DynamicResource TextPrimaryBrush}"
-                                 BorderBrush="{DynamicResource ThemeBorderBrush}"
-                                 Margin="0,0,0,16"/>
+                                 Margin="0,0,0,16">
+                            <TextBox.Style>
+                                <Style TargetType="TextBox">
+                                    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderBrush}"/>
+                                    <Setter Property="BorderThickness" Value="1"/>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
 
                         <!-- Save button -->
                         <Button Content="Save Changes" Style="{StaticResource PrimaryButton}"
