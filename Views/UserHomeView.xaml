@@ -1,0 +1,88 @@
+<Page x:Class="PharmaDesk.Views.UserHomeView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:comp="clr-namespace:PharmaDesk.Views.Components"
+      Background="{DynamicResource BackgroundBrush}">
+    <DockPanel>
+        <!-- Header bar -->
+        <Border DockPanel.Dock="Top" Style="{StaticResource HeaderBar}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Browse Products" Style="{StaticResource PageTitle}"
+                           VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+
+        <!-- Main scrollable content -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="24" Spacing="16">
+
+                <!-- Search bar -->
+                <Border Background="{DynamicResource SurfaceBrush}"
+                        CornerRadius="8" BorderBrush="{DynamicResource ThemeBorderBrush}"
+                        BorderThickness="1" Padding="12,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <!-- Search icon -->
+                        <TextBlock Text="&#x1F50D;" VerticalAlignment="Center" Margin="0,0,8,0"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <!-- Note: use Path/SVG icon in production; TextBlock emoji acceptable for now -->
+                        <TextBox Grid.Column="1"
+                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                 Height="44" BorderThickness="0"
+                                 Background="Transparent"
+                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                 VerticalContentAlignment="Center"/>
+                    </Grid>
+                </Border>
+
+                <!-- Featured promotion banner -->
+                <Border Height="80" CornerRadius="12" ClipToBounds="True">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#FFFCA311" Offset="0"/>
+                            <GradientStop Color="#FFE8940A" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <TextBlock Text="Featured Products — Up to 30% Off"
+                               Foreground="White" FontSize="18" FontWeight="Bold"
+                               VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                </Border>
+
+                <!-- Category filter pills -->
+                <!-- Pills generated from Categories collection; 4 placeholder pills shown below -->
+                <WrapPanel x:Name="CategoryPills" Orientation="Horizontal">
+                    <ToggleButton Content="All" Margin="0,0,8,8"
+                                  Style="{StaticResource CategoryPill}" IsChecked="True"/>
+                    <ToggleButton Content="Antibiotics" Margin="0,0,8,8"
+                                  Style="{StaticResource CategoryPill}"/>
+                    <ToggleButton Content="Vitamins" Margin="0,0,8,8"
+                                  Style="{StaticResource CategoryPill}"/>
+                    <ToggleButton Content="Pain Relief" Margin="0,0,8,8"
+                                  Style="{StaticResource CategoryPill}"/>
+                </WrapPanel>
+
+                <!-- Products grid -->
+                <ItemsControl ItemsSource="{Binding Products}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="4"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <comp:ProductCard DataContext="{Binding}" Margin="6"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Page>
