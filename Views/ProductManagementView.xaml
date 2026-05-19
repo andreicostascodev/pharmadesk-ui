@@ -1,0 +1,210 @@
+<Page x:Class="PharmaDesk.Views.ProductManagementView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Background="{DynamicResource BackgroundBrush}">
+    <Page.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+    </Page.Resources>
+    <DockPanel>
+        <!-- Header -->
+        <Border DockPanel.Dock="Top" Style="{StaticResource HeaderBar}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Products" Style="{StaticResource PageTitle}" VerticalAlignment="Center"/>
+                <Button Grid.Column="1" Content="+ Add Product" Style="{StaticResource PrimaryButton}"
+                        Command="{Binding NewProductCommand}"/>
+            </Grid>
+        </Border>
+
+        <!-- Split layout -->
+        <Grid Margin="24">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="12"/>
+                <ColumnDefinition Width="380"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- LEFT: product list DataGrid -->
+            <Border Grid.Column="0" Style="{StaticResource BentoCardStyle}" Padding="0">
+                <DataGrid ItemsSource="{Binding Products}"
+                          SelectedItem="{Binding SelectedProduct}"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          IsReadOnly="True"
+                          RowBackground="{DynamicResource BackgroundBrush}"
+                          AlternatingRowBackground="{DynamicResource SurfaceBrush}"
+                          BorderThickness="0"
+                          GridLinesVisibility="Horizontal"
+                          HorizontalGridLinesBrush="{DynamicResource ThemeBorderBrush}"
+                          ColumnHeaderHeight="40"
+                          RowHeight="52">
+
+                    <DataGrid.ColumnHeaderStyle>
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                            <Setter Property="FontSize" Value="12"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                            <Setter Property="Padding" Value="12,0"/>
+                        </Style>
+                    </DataGrid.ColumnHeaderStyle>
+
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow">
+                            <Style.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Background" Value="#22FCA311"/>
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGrid.RowStyle>
+
+                    <DataGrid.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Padding" Value="12,0"/>
+                            <Setter Property="VerticalContentAlignment" Value="Center"/>
+                            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                        </Style>
+                    </DataGrid.CellStyle>
+
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" CanUserSort="True"/>
+                        <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="120" CanUserSort="True"/>
+                        <DataGridTemplateColumn Header="Price" Width="90" SortMemberPath="Price" CanUserSort="True">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock VerticalAlignment="Center">
+                                        <Run Text="lei "/><Run Text="{Binding Price, StringFormat=N2}"/>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Stock" Binding="{Binding Stock}" Width="70" CanUserSort="True"/>
+                        <DataGridTemplateColumn Header="Actions" Width="80" CanUserSort="False">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="Edit" Style="{StaticResource GhostButton}" Height="32" Padding="8,0"
+                                            Command="{Binding DataContext.EditProductCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                            CommandParameter="{Binding}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+
+            <!-- RIGHT: edit/create form -->
+            <Border Grid.Column="2" Style="{StaticResource BentoCardStyle}" VerticalAlignment="Top">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="800">
+                    <StackPanel>
+                        <TextBlock Text="Edit Product" Style="{StaticResource SectionHeading}" Margin="0,0,0,16"/>
+
+                        <!-- Image upload zone -->
+                        <Grid x:Name="ImageDropZone"
+                              Height="140"
+                              AllowDrop="True"
+                              DragOver="ImageDropZone_DragOver"
+                              DragLeave="ImageDropZone_DragLeave"
+                              Drop="ImageDropZone_Drop"
+                              Margin="0,0,0,16"
+                              Cursor="Hand">
+                            <!-- Dashed border via Rectangle -->
+                            <Rectangle x:Name="DropZoneRect"
+                                       Stroke="{DynamicResource ThemeBorderBrush}"
+                                       StrokeThickness="2"
+                                       StrokeDashArray="4 2"
+                                       RadiusX="8" RadiusY="8"/>
+                            <!-- Content -->
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <TextBlock Text="&#x1F4F7;" FontSize="32" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Drop image here or click to browse"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           FontSize="13" HorizontalAlignment="Center" Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Name field -->
+                        <TextBlock Text="PRODUCT NAME" Style="{StaticResource CardLabel}" Margin="0,0,0,6"/>
+                        <TextBox Text="{Binding EditName, UpdateSourceTrigger=PropertyChanged}"
+                                 Height="44" Padding="12,0" VerticalContentAlignment="Center"
+                                 Background="{DynamicResource SurfaceBrush}"
+                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                 Margin="0,0,0,4">
+                            <TextBox.Style>
+                                <Style TargetType="TextBox">
+                                    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderBrush}"/>
+                                    <Setter Property="BorderThickness" Value="1"/>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
+                        <TextBlock Text="{Binding NameError}" Foreground="#FFEF4444" FontSize="12" Margin="0,0,0,12"
+                                   Visibility="{Binding HasNameError, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                        <!-- Price field -->
+                        <TextBlock Text="PRICE (LEI)" Style="{StaticResource CardLabel}" Margin="0,0,0,6"/>
+                        <TextBox Text="{Binding EditPrice, UpdateSourceTrigger=PropertyChanged}"
+                                 Height="44" Padding="12,0" VerticalContentAlignment="Center"
+                                 Background="{DynamicResource SurfaceBrush}"
+                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                 Margin="0,0,0,4">
+                            <TextBox.Style>
+                                <Style TargetType="TextBox">
+                                    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderBrush}"/>
+                                    <Setter Property="BorderThickness" Value="1"/>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
+                        <TextBlock Text="{Binding PriceError}" Foreground="#FFEF4444" FontSize="12" Margin="0,0,0,12"
+                                   Visibility="{Binding HasPriceError, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                        <!-- Category field -->
+                        <TextBlock Text="CATEGORY" Style="{StaticResource CardLabel}" Margin="0,0,0,6"/>
+                        <TextBox Text="{Binding EditCategory, UpdateSourceTrigger=PropertyChanged}"
+                                 Height="44" Padding="12,0" VerticalContentAlignment="Center"
+                                 Background="{DynamicResource SurfaceBrush}"
+                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                 Margin="0,0,0,4">
+                            <TextBox.Style>
+                                <Style TargetType="TextBox">
+                                    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderBrush}"/>
+                                    <Setter Property="BorderThickness" Value="1"/>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
+
+                        <!-- Stock field -->
+                        <TextBlock Text="STOCK" Style="{StaticResource CardLabel}" Margin="0,6,0,6"/>
+                        <TextBox Text="{Binding EditStock, UpdateSourceTrigger=PropertyChanged}"
+                                 Height="44" Padding="12,0" VerticalContentAlignment="Center"
+                                 Background="{DynamicResource SurfaceBrush}"
+                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                 Margin="0,0,0,16">
+                            <TextBox.Style>
+                                <Style TargetType="TextBox">
+                                    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderBrush}"/>
+                                    <Setter Property="BorderThickness" Value="1"/>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
+
+                        <!-- Action buttons -->
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="Save" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"
+                                    Command="{Binding SaveProductCommand}"/>
+                            <Button Content="Delete" Style="{StaticResource DangerButton}"
+                                    Command="{Binding DeleteProductCommand}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </DockPanel>
+</Page>

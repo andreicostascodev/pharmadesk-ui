@@ -1,0 +1,27 @@
+<Application x:Class="PharmaDesk.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:helpers="clr-namespace:PharmaDesk.Helpers"
+             xmlns:converters="clr-namespace:PharmaDesk.Converters">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Styles/Shared.xaml"/>
+                <ResourceDictionary Source="Styles/LightTheme.xaml"/>
+                <ResourceDictionary Source="Styles/NavigationSidebar.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Existing helpers -->
+            <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+            <helpers:NotNullConverter x:Key="NotNullConverter" />
+            <helpers:StockWarningConverter x:Key="StockWarningConverter" />
+            <helpers:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+            <helpers:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+
+            <!-- New design-system converters -->
+            <converters:StatusToBrushConverter x:Key="StatusToBrushConverter"/>
+            <converters:ProgressToWidthConverter x:Key="ProgressToWidthConverter"/>
+            <converters:RoleToBrushConverter x:Key="RoleToBrushConverter"/>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

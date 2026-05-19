@@ -1,0 +1,91 @@
+<Page x:Class="PharmaDesk.Views.ReportsView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
+      Background="{DynamicResource BackgroundBrush}">
+    <DockPanel>
+        <!-- Header with export buttons -->
+        <Border DockPanel.Dock="Top" Style="{StaticResource HeaderBar}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Reports" Style="{StaticResource PageTitle}" VerticalAlignment="Center"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Content="Export Excel" Style="{StaticResource PrimaryButton}"
+                            Margin="0,0,8,0" Command="{Binding ExportExcelCommand}"/>
+                    <Button Content="Export PDF" Style="{StaticResource PrimaryButton}"
+                            Command="{Binding ExportPdfCommand}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <ScrollViewer Margin="24" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!-- Row 1: Two summary charts side by side -->
+                <Grid Margin="0,0,0,16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Revenue by Month chart -->
+                    <Border Grid.Column="0" Style="{StaticResource BentoCardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Revenue by Month" Style="{StaticResource SectionHeading}" Margin="0,0,0,16"/>
+                            <lvc:CartesianChart Series="{Binding RevenueByMonthSeries}"
+                                               XAxes="{Binding RevenueXAxes}"
+                                               YAxes="{Binding RevenueYAxes}"
+                                               Height="260"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Orders by Status donut -->
+                    <Border Grid.Column="2" Style="{StaticResource BentoCardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Orders by Status" Style="{StaticResource SectionHeading}" Margin="0,0,0,16"/>
+                            <lvc:PieChart Series="{Binding OrderStatusSeries}"
+                                         Height="260" InitialRotation="-90"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- Row 2: Top products bar chart full width -->
+                <Border Style="{StaticResource BentoCardStyle}" Margin="0,0,0,16">
+                    <StackPanel>
+                        <TextBlock Text="Top Selling Products" Style="{StaticResource SectionHeading}" Margin="0,0,0,16"/>
+                        <lvc:CartesianChart Series="{Binding TopProductsSeries}"
+                                           XAxes="{Binding TopProductsXAxes}"
+                                           YAxes="{Binding TopProductsYAxes}"
+                                           Height="220"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Row 3: Summary stats row -->
+                <Border Style="{StaticResource BentoCardStyle}">
+                    <UniformGrid Columns="4">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="{Binding TotalRevenue, StringFormat='lei {0:N0}'}"
+                                       Style="{StaticResource KpiValue}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Total Revenue" Style="{StaticResource CardLabel}" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="{Binding TotalOrders}" Style="{StaticResource KpiValue}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Total Orders" Style="{StaticResource CardLabel}" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="{Binding TotalProducts}" Style="{StaticResource KpiValue}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Products" Style="{StaticResource CardLabel}" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="{Binding TotalUsers}" Style="{StaticResource KpiValue}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Users" Style="{StaticResource CardLabel}" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </UniformGrid>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Page>
