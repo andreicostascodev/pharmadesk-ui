@@ -25,7 +25,7 @@
     <Thickness x:Key="CardPadding">20</Thickness>
 
     <!-- ═══ BentoCard ═══ -->
-    <Style x:Key="BentoCard" TargetType="Border">
+    <Style x:Key="BentoCardStyle" TargetType="Border">
         <Setter Property="Background"      Value="{DynamicResource SurfaceElevatedBrush}" />
         <Setter Property="BorderBrush"     Value="{DynamicResource ThemeBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
