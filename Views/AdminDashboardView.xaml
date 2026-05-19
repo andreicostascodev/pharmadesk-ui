@@ -22,7 +22,7 @@
             <UniformGrid Columns="4" Margin="0,0,0,12">
 
                 <!-- Total Products -->
-                <Border Style="{StaticResource BentoCard}" Margin="0,0,6,0"
+                <Border Style="{StaticResource BentoCardStyle}" Margin="0,0,6,0"
                         BorderBrush="{StaticResource AccentBrush}">
                     <StackPanel>
                         <TextBlock Text="TOTAL PRODUCTS" Style="{StaticResource CardLabel}" />
@@ -37,7 +37,7 @@
                 </Border>
 
                 <!-- Orders Today -->
-                <Border Style="{StaticResource BentoCard}" Margin="6,0,6,0"
+                <Border Style="{StaticResource BentoCardStyle}" Margin="6,0,6,0"
                         BorderBrush="{StaticResource AccentBrush}">
                     <StackPanel>
                         <TextBlock Text="ORDERS TODAY" Style="{StaticResource CardLabel}" />
@@ -52,7 +52,7 @@
                 </Border>
 
                 <!-- Low Stock Alerts -->
-                <Border Style="{StaticResource BentoCard}" Margin="6,0,6,0"
+                <Border Style="{StaticResource BentoCardStyle}" Margin="6,0,6,0"
                         BorderBrush="{StaticResource DangerBrush}">
                     <StackPanel>
                         <TextBlock Text="LOW STOCK ALERTS" Style="{StaticResource CardLabel}" />
@@ -67,7 +67,7 @@
                 </Border>
 
                 <!-- Revenue Today -->
-                <Border Style="{StaticResource BentoCard}" Margin="6,0,0,0"
+                <Border Style="{StaticResource BentoCardStyle}" Margin="6,0,0,0"
                         BorderBrush="{StaticResource SuccessBrush}">
                     <StackPanel>
                         <TextBlock Text="REVENUE TODAY" Style="{StaticResource CardLabel}" />
@@ -98,7 +98,7 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Revenue Bar Chart -->
-                <Border Grid.Column="0" Style="{StaticResource BentoCard}">
+                <Border Grid.Column="0" Style="{StaticResource BentoCardStyle}">
                     <StackPanel>
                         <DockPanel Margin="0,0,0,16">
                             <TextBlock Text="Revenue" Style="{StaticResource SectionHeading}" />
@@ -122,7 +122,7 @@
                 </Border>
 
                 <!-- Order Status Donut -->
-                <Border Grid.Column="2" Style="{StaticResource BentoCard}">
+                <Border Grid.Column="2" Style="{StaticResource BentoCardStyle}">
                     <StackPanel>
                         <TextBlock Text="Order Status" Style="{StaticResource SectionHeading}"
                                    Margin="0,0,0,16" />
@@ -174,7 +174,7 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Top Selling Products -->
-                <Border Grid.Column="0" Style="{StaticResource BentoCard}">
+                <Border Grid.Column="0" Style="{StaticResource BentoCardStyle}">
                     <StackPanel>
                         <TextBlock Text="Top Products" Style="{StaticResource SectionHeading}"
                                    Margin="0,0,0,16" />
@@ -223,7 +223,7 @@
                 </Border>
 
                 <!-- Recent Orders Table -->
-                <Border Grid.Column="2" Style="{StaticResource BentoCard}" Padding="0">
+                <Border Grid.Column="2" Style="{StaticResource BentoCardStyle}" Padding="0">
                     <StackPanel>
                         <TextBlock Text="Recent Orders" Style="{StaticResource SectionHeading}"
                                    Margin="20,20,20,16" />
