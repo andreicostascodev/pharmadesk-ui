@@ -29,7 +29,7 @@
                     <UniformGrid Columns="3">
                         <!-- Total Orders -->
                         <StackPanel HorizontalAlignment="Center">
-                            <TextBlock Text="{Binding TotalOrders}" Style="{StaticResource KpiValue}"
+                            <TextBlock Text="{Binding TotalOrdersCount}" Style="{StaticResource KpiValue}"
                                        HorizontalAlignment="Center"/>
                             <TextBlock Text="Total Orders" Style="{StaticResource CardLabel}"
                                        HorizontalAlignment="Center"/>
@@ -37,14 +37,14 @@
                         <!-- Total Spent -->
                         <StackPanel HorizontalAlignment="Center">
                             <TextBlock Style="{StaticResource KpiValue}" HorizontalAlignment="Center">
-                                <Run Text="lei "/><Run Text="{Binding TotalSpent, StringFormat=N0}"/>
+                                <Run Text="lei "/><Run Text="{Binding TotalSpentAmount, StringFormat=N0}"/>
                             </TextBlock>
                             <TextBlock Text="Total Spent" Style="{StaticResource CardLabel}"
                                        HorizontalAlignment="Center"/>
                         </StackPanel>
                         <!-- Member Since -->
                         <StackPanel HorizontalAlignment="Center">
-                            <TextBlock Text="{Binding MemberSince}" Style="{StaticResource KpiValue}"
+                            <TextBlock Text="{Binding MemberSinceText}" Style="{StaticResource KpiValue}"
                                        HorizontalAlignment="Center"/>
                             <TextBlock Text="Member Since" Style="{StaticResource CardLabel}"
                                        HorizontalAlignment="Center"/>
@@ -91,7 +91,7 @@
 
                         <!-- Save button -->
                         <Button Content="Save Changes" Style="{StaticResource PrimaryButton}"
-                                Command="{Binding SaveCommand}" HorizontalAlignment="Left"/>
+                                Command="{Binding SaveProfileCommand}" HorizontalAlignment="Left"/>
                     </StackPanel>
                 </Border>
 

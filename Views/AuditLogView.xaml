@@ -81,7 +81,7 @@
                         </DataGridTemplateColumn>
 
                         <!-- User -->
-                        <DataGridTextColumn Header="User" Binding="{Binding UserName}" Width="140" CanUserSort="True"/>
+                        <DataGridTextColumn Header="User" Binding="{Binding User.Username}" Width="140" CanUserSort="True"/>
 
                         <!-- Action type (colour-coded) -->
                         <DataGridTemplateColumn Header="Action" Width="140" SortMemberPath="Action" CanUserSort="True">
@@ -113,7 +113,7 @@
                         </DataGridTemplateColumn>
 
                         <!-- Description -->
-                        <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" CanUserSort="False"/>
+                        <DataGridTextColumn Header="Description" Binding="{Binding TableName}" Width="*" CanUserSort="False"/>
                     </DataGrid.Columns>
                 </DataGrid>
             </Border>

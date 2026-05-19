@@ -17,6 +17,8 @@
             <helpers:StockWarningConverter x:Key="StockWarningConverter" />
             <helpers:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
             <helpers:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <helpers:FirstLetterConverter x:Key="FirstLetterConverter" />
+            <helpers:BoolToStatusConverter x:Key="BoolToStatusConverter" />
 
             <!-- New design-system converters -->
             <converters:StatusToBrushConverter x:Key="StatusToBrushConverter"/>

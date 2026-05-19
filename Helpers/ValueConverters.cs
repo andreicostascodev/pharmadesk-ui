@@ -61,3 +61,31 @@ public class BoolToVisibilityConverter : IValueConverter
         throw new NotImplementedException();
     }
 }
+
+public class FirstLetterConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is string s && s.Length > 0)
+            return char.ToUpper(s[0]).ToString();
+        return "?";
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class BoolToStatusConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return value is true ? "Active" : "Inactive";
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}

@@ -3,50 +3,127 @@ using CommunityToolkit.Mvvm.Input;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
+using Microsoft.EntityFrameworkCore;
+using PharmaDesk.Data;
 using PharmaDesk.Models;
 using SkiaSharp;
 using System.Collections.ObjectModel;
 
 namespace PharmaDesk.ViewModels;
 
-public partial class AdminDashboardViewModel : ObservableObject
+public partial class AdminDashboardViewModel(PharmaDeskDbContext db) : ViewModelBase
 {
     // ── KPI ──────────────────────────────────────────────────────────
-    [ObservableProperty] private int     totalProducts;
-    [ObservableProperty] private int     ordersToday;
-    [ObservableProperty] private int     lowStockCount;
+    [ObservableProperty] private int totalProducts;
+    [ObservableProperty] private int ordersToday;
+    [ObservableProperty] private int lowStockCount;
     [ObservableProperty] private decimal revenueToday;
-    [ObservableProperty] private string  revenueTrendText = "+0%";
-    [ObservableProperty] private bool    isTrendUp        = true;
+    [ObservableProperty] private string revenueTrendText = "+0%";
+    [ObservableProperty] private bool isTrendUp = true;
+    [ObservableProperty] private int totalOrderCount;
+    [ObservableProperty] private int selectedRange = 30;
 
     // ── Sparklines (7-day) ───────────────────────────────────────────
     [ObservableProperty] private ISeries[] productsTrend = [];
-    [ObservableProperty] private ISeries[] ordersTrend   = [];
-    [ObservableProperty] private ISeries[] revenueTrend  = [];
+    [ObservableProperty] private ISeries[] ordersTrend = [];
+    [ObservableProperty] private ISeries[] revenueTrend = [];
     [ObservableProperty] private ISeries[] lowStockTrend = [];
 
     // ── Revenue chart ─────────────────────────────────────────────────
     [ObservableProperty] private ISeries[] revenueChartSeries = [];
-    [ObservableProperty] private Axis[]    revenueXAxes       = [];
-    [ObservableProperty] private Axis[]    revenueYAxes       = [];
-    [ObservableProperty] private int       selectedRange       = 30;
+    [ObservableProperty] private Axis[] revenueXAxes = [new Axis()];
+    [ObservableProperty] private Axis[] revenueYAxes = [new Axis()];
 
     // ── Order status donut ────────────────────────────────────────────
     [ObservableProperty] private ISeries[] orderStatusSeries = [];
-    [ObservableProperty] private int       totalOrderCount;
 
     // ── Lists ─────────────────────────────────────────────────────────
-    [ObservableProperty] private ObservableCollection<TopProductItem>  topProducts  = [];
-    [ObservableProperty] private ObservableCollection<RecentOrderItem> recentOrders = [];
+    public ObservableCollection<TopProductItem> TopProducts { get; } = new();
+    public ObservableCollection<RecentOrderItem> RecentOrders { get; } = new();
 
     private static readonly SKColor Amber = SKColor.Parse("#FCA311");
     private static readonly SKColor Green = SKColor.Parse("#22C55E");
     private static readonly SKColor Red   = SKColor.Parse("#EF4444");
     private static readonly SKColor Muted = SKColor.Parse("#A0AEC0");
 
-    public AdminDashboardViewModel()
+    public async Task LoadAsync()
     {
-        LoadData(30);
+        // KPIs
+        TotalProducts = await db.Medicines.CountAsync(m => m.IsActive);
+        OrdersToday = await db.Orders.CountAsync(o => o.OrderDate.Date == DateTime.Today);
+        LowStockCount = await db.Medicines.CountAsync(m => m.StockQuantity <= m.ReorderLevel && m.IsActive);
+        RevenueToday = await db.Orders.Where(o => o.OrderDate.Date == DateTime.Today).SumAsync(o => (decimal?)o.GrandTotal) ?? 0;
+        TotalOrderCount = await db.Orders.CountAsync();
+
+        // Sparklines (7-day stubs based on real data)
+        RevenueTrend = [MakeSparkline(new double[] { 120, 180, 140, 200, 170, 220, (double)RevenueToday })];
+        LowStockTrend = [MakeSparkline(new double[] { 5, 4, 6, 3, 4, 3, LowStockCount })];
+        ProductsTrend = [MakeSparkline(new double[] { Math.Max(0, TotalProducts - 5), Math.Max(0, TotalProducts - 3), Math.Max(0, TotalProducts - 2), Math.Max(0, TotalProducts - 4), Math.Max(0, TotalProducts - 1), TotalProducts, TotalProducts })];
+        OrdersTrend = [MakeSparkline(new double[] { 2, 4, 3, 5, 4, 6, OrdersToday })];
+
+        // Revenue chart (30 days)
+        LoadRevenueChart(SelectedRange);
+
+        // Order status donut
+        var pending = await db.Orders.CountAsync(o => o.Status == "Noua" || o.Status == "Pending");
+        var completed = await db.Orders.CountAsync(o => o.Status == "Livrata" || o.Status == "Completed");
+        var cancelled = await db.Orders.CountAsync(o => o.Status == "Anulata" || o.Status == "Cancelled");
+        OrderStatusSeries = [
+            new PieSeries<int> { Values = [pending],   Name = "Pending",   Fill = new SolidColorPaint(Amber), InnerRadius = 60 },
+            new PieSeries<int> { Values = [completed], Name = "Completed", Fill = new SolidColorPaint(Green), InnerRadius = 60 },
+            new PieSeries<int> { Values = [cancelled], Name = "Cancelled", Fill = new SolidColorPaint(Red),   InnerRadius = 60 }
+        ];
+
+        // Top products
+        TopProducts.Clear();
+        var topItems = await db.OrderItems
+            .Include(i => i.Medicine)
+            .GroupBy(i => i.Medicine!.Id)
+            .Select(g => new
+            {
+                MedicineId = g.Key,
+                Name = g.First().Medicine!.Name,
+                ImageUrl = g.First().Medicine!.ImageUrl,
+                UnitsSold = g.Sum(i => i.Quantity)
+            })
+            .OrderByDescending(x => x.UnitsSold)
+            .Take(5)
+            .ToListAsync();
+
+        int maxUnits = topItems.FirstOrDefault()?.UnitsSold ?? 1;
+        for (int i = 0; i < topItems.Count; i++)
+        {
+            var item = topItems[i];
+            TopProducts.Add(new TopProductItem
+            {
+                Rank = i + 1,
+                Name = item.Name,
+                ImagePath = item.ImageUrl ?? "Assets/placeholder.png",
+                UnitsSold = item.UnitsSold,
+                MaxUnits = maxUnits
+            });
+        }
+
+        // Recent orders
+        RecentOrders.Clear();
+        var recent = await db.Orders
+            .Include(o => o.User)
+            .OrderByDescending(o => o.OrderDate)
+            .Take(10)
+            .ToListAsync();
+        foreach (var o in recent)
+        {
+            RecentOrders.Add(new RecentOrderItem
+            {
+                OrderId  = o.OrderNumber,
+                Customer = o.User?.FullName ?? "Unknown",
+                Initials = GetInitials(o.User?.FullName),
+                ItemCount = o.Items.Count,
+                Total    = o.GrandTotal,
+                Status   = o.Status,
+                CreatedAt = o.OrderDate
+            });
+        }
     }
 
     [RelayCommand]
@@ -59,27 +136,6 @@ public partial class AdminDashboardViewModel : ObservableObject
         }
     }
 
-    private void LoadData(int rangeDays)
-    {
-        TotalProducts   = 42;
-        OrdersToday     = 18;
-        LowStockCount   = 3;
-        RevenueToday    = 4_280.50m;
-        RevenueTrendText = "+12.4%";
-        IsTrendUp        = true;
-        TotalOrderCount  = 284;
-
-        ProductsTrend = MakeSparkline(new double[] { 38, 39, 40, 40, 41, 41, 42 });
-        OrdersTrend   = MakeSparkline(new double[] { 12, 15, 10, 18, 14, 16, 18 });
-        RevenueTrend  = MakeSparkline(new double[] { 3100, 3800, 2900, 4100, 3700, 4000, 4280 });
-        LowStockTrend = MakeSparkline(new double[] { 5, 4, 6, 3, 4, 3, 3 });
-
-        LoadRevenueChart(rangeDays);
-        LoadOrderStatusDonut();
-        LoadTopProducts();
-        LoadRecentOrders();
-    }
-
     private void LoadRevenueChart(int days)
     {
         var rng    = new Random(42);
@@ -88,8 +144,7 @@ public partial class AdminDashboardViewModel : ObservableObject
                                .Select(i => DateTime.Today.AddDays(-days + i + 1).ToString("MMM dd"))
                                .ToArray();
 
-        RevenueChartSeries = new ISeries[]
-        {
+        RevenueChartSeries = [
             new ColumnSeries<double>
             {
                 Values      = values,
@@ -98,101 +153,30 @@ public partial class AdminDashboardViewModel : ObservableObject
                 MaxBarWidth = 24,
                 Rx = 4, Ry = 4,
             }
-        };
+        ];
 
-        RevenueXAxes = new Axis[]
-        {
+        RevenueXAxes = [
             new Axis
             {
-                Labels         = labels,
-                LabelsPaint    = new SolidColorPaint(Muted),
-                LabelsRotation = -30,
-                TextSize       = 11,
+                Labels          = labels,
+                LabelsPaint     = new SolidColorPaint(Muted),
+                LabelsRotation  = -30,
+                TextSize        = 11,
                 SeparatorsPaint = null,
             }
-        };
+        ];
 
-        RevenueYAxes = new Axis[]
-        {
+        RevenueYAxes = [
             new Axis
             {
                 LabelsPaint     = new SolidColorPaint(Muted),
                 TextSize        = 11,
-                SeparatorsPaint = new SolidColorPaint(SKColor.Parse("#2D3F5C"))
-                                  { StrokeThickness = 1 },
+                SeparatorsPaint = new SolidColorPaint(SKColor.Parse("#2D3F5C")) { StrokeThickness = 1 },
             }
-        };
+        ];
     }
 
-    private void LoadOrderStatusDonut()
-    {
-        OrderStatusSeries = new ISeries[]
-        {
-            new PieSeries<double>
-            {
-                Name        = "Pending",
-                Values      = new double[] { 84 },
-                Fill        = new SolidColorPaint(Amber),
-                InnerRadius = 60,
-            },
-            new PieSeries<double>
-            {
-                Name        = "Completed",
-                Values      = new double[] { 176 },
-                Fill        = new SolidColorPaint(Green),
-                InnerRadius = 60,
-            },
-            new PieSeries<double>
-            {
-                Name        = "Cancelled",
-                Values      = new double[] { 24 },
-                Fill        = new SolidColorPaint(Red),
-                InnerRadius = 60,
-            },
-        };
-    }
-
-    private void LoadTopProducts()
-    {
-        TopProducts = new ObservableCollection<TopProductItem>
-        {
-            new() { Rank=1, Name="Paracetamol Forte", UnitsSold=847, MaxUnits=900,
-                    ImagePath="Assets/Products/paracetamol-forte.png" },
-            new() { Rank=2, Name="Omega-3",           UnitsSold=723, MaxUnits=900,
-                    ImagePath="Assets/Products/omega-3.png" },
-            new() { Rank=3, Name="Ibuprofen Rapid",   UnitsSold=612, MaxUnits=900,
-                    ImagePath="Assets/Products/ibuprofen-rapid.png" },
-            new() { Rank=4, Name="Vitamina C + Zinc", UnitsSold=598, MaxUnits=900,
-                    ImagePath="Assets/Products/vitamina-c-zinc.png" },
-            new() { Rank=5, Name="Magneziu B6",       UnitsSold=504, MaxUnits=900,
-                    ImagePath="Assets/Products/magneziu-b6.png" },
-        };
-    }
-
-    private void LoadRecentOrders()
-    {
-        RecentOrders = new ObservableCollection<RecentOrderItem>
-        {
-            new() { OrderId="#001284", Customer="Maria Ionescu",    Initials="MI",
-                    ItemCount=3, Total=245.00m,  Status="Completed",
-                    CreatedAt=DateTime.Now.AddHours(-2) },
-            new() { OrderId="#001283", Customer="Alexandru Popa",   Initials="AP",
-                    ItemCount=1, Total=89.50m,   Status="Pending",
-                    CreatedAt=DateTime.Now.AddHours(-4) },
-            new() { OrderId="#001282", Customer="Elena Dumitrescu", Initials="ED",
-                    ItemCount=5, Total=412.00m,  Status="Completed",
-                    CreatedAt=DateTime.Now.AddHours(-6) },
-            new() { OrderId="#001281", Customer="Ion Constantin",   Initials="IC",
-                    ItemCount=2, Total=178.00m,  Status="Cancelled",
-                    CreatedAt=DateTime.Now.AddDays(-1) },
-            new() { OrderId="#001280", Customer="Gabriela Stan",    Initials="GS",
-                    ItemCount=4, Total=320.50m,  Status="Completed",
-                    CreatedAt=DateTime.Now.AddDays(-1) },
-        };
-    }
-
-    private static ISeries[] MakeSparkline(double[] values) => new ISeries[]
-    {
+    private static ISeries MakeSparkline(double[] values) =>
         new LineSeries<double>
         {
             Values         = values,
@@ -200,6 +184,11 @@ public partial class AdminDashboardViewModel : ObservableObject
             Fill           = null,
             GeometrySize   = 0,
             LineSmoothness = 0.5,
-        }
-    };
+        };
+
+    private static string GetInitials(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "?";
+        return string.Join("", name.Split(' ').Where(w => w.Length > 0).Take(2).Select(w => w[0])).ToUpper();
+    }
 }

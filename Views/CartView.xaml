@@ -18,7 +18,7 @@
 
             <!-- LEFT: item list -->
             <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
-                <ItemsControl ItemsSource="{Binding CartItems}">
+                <ItemsControl ItemsSource="{Binding Items}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <!-- Cart item row card -->
@@ -32,32 +32,34 @@
                                     </Grid.ColumnDefinitions>
                                     <!-- Product image -->
                                     <Border Grid.Column="0" CornerRadius="8" ClipToBounds="True" Width="72" Height="72">
-                                        <Image Source="{Binding ImagePath, FallbackValue='Assets/placeholder.png'}"
+                                        <Image Source="{Binding Medicine.ImageUrl, FallbackValue='Assets/placeholder.png'}"
                                                Stretch="UniformToFill"/>
                                     </Border>
                                     <!-- Name + category -->
                                     <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold"
+                                        <TextBlock Text="{Binding Medicine.Name}" FontSize="14" FontWeight="SemiBold"
                                                    Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                        <TextBlock Text="{Binding Category}" FontSize="12" Margin="0,4,0,0"
+                                        <TextBlock Text="{Binding Medicine.Category.Name}" FontSize="12" Margin="0,4,0,0"
                                                    Foreground="{DynamicResource TextSecondaryBrush}"/>
                                     </StackPanel>
                                     <!-- Qty stepper -->
                                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0">
                                         <Button Content="&#x2212;" Style="{StaticResource GhostButton}" Width="32" Height="32"
-                                                Command="{Binding DecreaseCommand}"/>
+                                                Command="{Binding DataContext.DecreaseCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                CommandParameter="{Binding}"/>
                                         <TextBlock Text="{Binding Quantity}" Width="32" TextAlignment="Center"
                                                    VerticalAlignment="Center" FontSize="14"
                                                    Foreground="{DynamicResource TextPrimaryBrush}"/>
                                         <Button Content="+" Style="{StaticResource GhostButton}" Width="32" Height="32"
-                                                Command="{Binding IncreaseCommand}"/>
+                                                Command="{Binding DataContext.IncreaseCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                CommandParameter="{Binding}"/>
                                     </StackPanel>
                                     <!-- Row total -->
                                     <TextBlock Grid.Column="3" VerticalAlignment="Center"
                                                FontSize="16" FontWeight="Bold"
                                                Foreground="{DynamicResource TextPrimaryBrush}">
                                         <Run Text="lei "/>
-                                        <Run Text="{Binding RowTotal, StringFormat=N2}"/>
+                                        <Run Text="{Binding LineTotal, StringFormat=N2}"/>
                                     </TextBlock>
                                 </Grid>
                             </Border>

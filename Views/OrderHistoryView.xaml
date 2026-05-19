@@ -23,11 +23,11 @@
                                 <StackPanel Grid.Column="0">
                                     <TextBlock FontSize="13" FontFamily="Cascadia Code, Consolas"
                                                Foreground="{DynamicResource TextSecondaryBrush}">
-                                        <Run Text="#"/><Run Text="{Binding OrderId}"/>
+                                        <Run Text="#"/><Run Text="{Binding OrderNumber}"/>
                                     </TextBlock>
-                                    <TextBlock Text="{Binding ItemsSummary}" FontSize="14" Margin="0,4,0,0"
+                                    <TextBlock Text="{Binding Items.Count, StringFormat='{}{0} items'}" FontSize="14" Margin="0,4,0,0"
                                                Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                    <TextBlock Text="{Binding TimeAgo}" FontSize="12" Margin="0,4,0,0"
+                                    <TextBlock Text="{Binding OrderDate, StringFormat='dd MMM yyyy'}" FontSize="12" Margin="0,4,0,0"
                                                Foreground="{DynamicResource TextSecondaryBrush}"/>
                                 </StackPanel>
 
@@ -35,7 +35,7 @@
                                 <TextBlock Grid.Column="1" VerticalAlignment="Center" Margin="16,0"
                                            FontSize="16" FontWeight="Bold"
                                            Foreground="{DynamicResource TextPrimaryBrush}">
-                                    <Run Text="lei "/><Run Text="{Binding Total, StringFormat=N2}"/>
+                                    <Run Text="lei "/><Run Text="{Binding GrandTotal, StringFormat=N2}"/>
                                 </TextBlock>
 
                                 <!-- Right: status pill -->
@@ -51,6 +51,12 @@
                                                 <DataTrigger Binding="{Binding Status, StringFormat={}{0}}" Value="Cancelled">
                                                     <Setter Property="Background" Value="#33EF4444"/>
                                                 </DataTrigger>
+                                                <DataTrigger Binding="{Binding Status, StringFormat={}{0}}" Value="Livrata">
+                                                    <Setter Property="Background" Value="#3322C55E"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Status, StringFormat={}{0}}" Value="Anulata">
+                                                    <Setter Property="Background" Value="#33EF4444"/>
+                                                </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
                                     </Border.Style>
@@ -63,6 +69,12 @@
                                                         <Setter Property="Foreground" Value="#FF22C55E"/>
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding Status, StringFormat={}{0}}" Value="Cancelled">
+                                                        <Setter Property="Foreground" Value="#FFEF4444"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Status, StringFormat={}{0}}" Value="Livrata">
+                                                        <Setter Property="Foreground" Value="#FF22C55E"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Status, StringFormat={}{0}}" Value="Anulata">
                                                         <Setter Property="Foreground" Value="#FFEF4444"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>

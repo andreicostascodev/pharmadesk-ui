@@ -7,6 +7,10 @@ using Microsoft.Win32;
 using PharmaDesk.Data;
 using PharmaDesk.Models;
 using PharmaDesk.Services;
+using LiveChartsCore;
+using LiveChartsCore.SkiaSharpView;
+using LiveChartsCore.SkiaSharpView.Painting;
+using SkiaSharp;
 
 namespace PharmaDesk.ViewModels;
 
@@ -202,6 +206,9 @@ public partial class CartViewModel(ICartService cart, IOrderService orders, AppS
     [ObservableProperty] private string paymentMethod = "Card";
     [ObservableProperty] private string? prescriptionPath;
     [ObservableProperty] private decimal total;
+
+    public decimal Subtotal => Items.Sum(x => x.LineTotal);
+    public decimal DeliveryFee => Items.Count > 0 ? 15m : 0m;
     public bool RequiresPrescription => Items.Any(x => x.Medicine?.IsPrescriptionRequired == true);
 
     public async Task LoadAsync()
@@ -212,6 +219,8 @@ public partial class CartViewModel(ICartService cart, IOrderService orders, AppS
         foreach (var item in await cart.GetCartAsync(session.CurrentUser.Id)) Items.Add(item);
         Total = Items.Sum(x => x.LineTotal);
         OnPropertyChanged(nameof(RequiresPrescription));
+        OnPropertyChanged(nameof(Subtotal));
+        OnPropertyChanged(nameof(DeliveryFee));
     }
 
     [RelayCommand] private async Task IncreaseAsync(CartItem item) { await cart.UpdateQuantityAsync(item.Id, item.Quantity + 1); await LoadAsync(); }
@@ -254,12 +263,27 @@ public partial class ProfileViewModel(AppSession session, PharmaDeskDbContext db
     [ObservableProperty] private string oldPassword = string.Empty;
     [ObservableProperty] private string newPassword = string.Empty;
 
-    public Task LoadAsync()
+    [ObservableProperty] private int totalOrdersCount;
+    [ObservableProperty] private decimal totalSpentAmount;
+    [ObservableProperty] private string memberSinceText = string.Empty;
+
+    public string Initials => string.Join("", (FullName ?? "U").Split(' ').Where(w => w.Length > 0).Take(2).Select(w => w[0])).ToUpper();
+
+    public async Task LoadAsync()
     {
         Title = "Profil";
         FullName = session.CurrentUser?.FullName ?? string.Empty;
         Email = session.CurrentUser?.Email ?? string.Empty;
-        return Task.CompletedTask;
+        MemberSinceText = session.CurrentUser?.CreatedAt.Year.ToString() ?? string.Empty;
+
+        if (session.CurrentUser is not null)
+        {
+            var userOrders = await db.Orders.Where(o => o.UserId == session.CurrentUser.Id).ToListAsync();
+            TotalOrdersCount = userOrders.Count;
+            TotalSpentAmount = userOrders.Sum(o => o.GrandTotal);
+        }
+
+        OnPropertyChanged(nameof(Initials));
     }
 
     [RelayCommand]
@@ -272,6 +296,7 @@ public partial class ProfileViewModel(AppSession session, PharmaDeskDbContext db
         await db.SaveChangesAsync();
         session.CurrentUser.FullName = FullName;
         session.CurrentUser.Email = Email;
+        OnPropertyChanged(nameof(Initials));
         toast.Show("Profil actualizat.");
     }
 
@@ -290,6 +315,38 @@ public partial class ProductManagementViewModel(ICatalogService catalog) : ViewM
     public ObservableCollection<Medicine> Products { get; } = new();
     public ObservableCollection<Category> Categories { get; } = new();
     [ObservableProperty] private Medicine editor = new();
+    [ObservableProperty] private Medicine? selectedProduct;
+
+    public string EditName
+    {
+        get => Editor.Name;
+        set { Editor.Name = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasNameError)); }
+    }
+
+    public string EditPrice
+    {
+        get => Editor.UnitPrice.ToString("N2");
+        set { if (decimal.TryParse(value, out var d)) { Editor.UnitPrice = d; OnPropertyChanged(); OnPropertyChanged(nameof(HasPriceError)); } }
+    }
+
+    public string EditCategory
+    {
+        get => Editor.Category?.Name ?? string.Empty;
+        set { OnPropertyChanged(); }
+    }
+
+    public string EditStock
+    {
+        get => Editor.StockQuantity.ToString();
+        set { if (int.TryParse(value, out var i)) { Editor.StockQuantity = i; OnPropertyChanged(); } }
+    }
+
+    public bool HasNameError => string.IsNullOrWhiteSpace(Editor.Name);
+    public bool HasPriceError => Editor.UnitPrice <= 0;
+    public string NameError => "Name is required.";
+    public string PriceError => "Price must be greater than 0.";
+
+    public void SetImagePath(string path) { Editor.ImageUrl = path; OnPropertyChanged(nameof(Editor)); }
 
     public async Task LoadAsync()
     {
@@ -301,11 +358,14 @@ public partial class ProductManagementViewModel(ICatalogService catalog) : ViewM
         NewProduct();
     }
 
-    [RelayCommand] private void Edit(Medicine medicine) => Editor = new Medicine { Id = medicine.Id, Name = medicine.Name, GenericName = medicine.GenericName, Barcode = medicine.Barcode, CategoryId = medicine.CategoryId, DosageForm = medicine.DosageForm, Strength = medicine.Strength, UnitPrice = medicine.UnitPrice, StockQuantity = medicine.StockQuantity, ReorderLevel = medicine.ReorderLevel, IsPrescriptionRequired = medicine.IsPrescriptionRequired, IsActive = medicine.IsActive, ImageUrl = medicine.ImageUrl, Description = medicine.Description, Rating = medicine.Rating, IsNew = medicine.IsNew, IsPromotion = medicine.IsPromotion, DiscountPercent = medicine.DiscountPercent, CreatedAt = medicine.CreatedAt };
+    [RelayCommand] private void Edit(Medicine medicine) => Editor = new Medicine { Id = medicine.Id, Name = medicine.Name, GenericName = medicine.GenericName, Barcode = medicine.Barcode, CategoryId = medicine.CategoryId, Category = medicine.Category, DosageForm = medicine.DosageForm, Strength = medicine.Strength, UnitPrice = medicine.UnitPrice, StockQuantity = medicine.StockQuantity, ReorderLevel = medicine.ReorderLevel, IsPrescriptionRequired = medicine.IsPrescriptionRequired, IsActive = medicine.IsActive, ImageUrl = medicine.ImageUrl, Description = medicine.Description, Rating = medicine.Rating, IsNew = medicine.IsNew, IsPromotion = medicine.IsPromotion, DiscountPercent = medicine.DiscountPercent, CreatedAt = medicine.CreatedAt };
+    [RelayCommand] private void EditProduct(Medicine medicine) => Edit(medicine);
     [RelayCommand] private void NewProduct() => Editor = new Medicine { IsActive = true, ImageUrl = "pack://application:,,,/Resources/logo.png", Rating = 4.6m, CreatedAt = DateTime.UtcNow, CategoryId = Categories.FirstOrDefault()?.Id ?? 0 };
     [RelayCommand] private async Task SaveAsync() { await catalog.SaveMedicineAsync(Editor); await LoadAsync(); }
+    [RelayCommand] private async Task SaveProduct() => await SaveAsync();
     [RelayCommand] private async Task DeleteAsync(Medicine medicine) { await catalog.DeleteMedicineAsync(medicine.Id); await LoadAsync(); }
-    
+    [RelayCommand] private async Task DeleteProduct(Medicine? medicine) { if (medicine is not null) await DeleteAsync(medicine); }
+
     [RelayCommand]
     private void UploadImage()
     {
@@ -334,6 +394,8 @@ public partial class CategoryManagementViewModel(ICatalogService catalog) : View
     [ObservableProperty] private Category editor = new();
     public async Task LoadAsync() { Title = "Categorii"; Categories.Clear(); foreach (var c in await catalog.GetCategoriesAsync()) Categories.Add(c); Editor = new(); }
     [RelayCommand] private void Edit(Category category) => Editor = new Category { Id = category.Id, Name = category.Name, Description = category.Description, ParentCategoryId = category.ParentCategoryId };
+    [RelayCommand] private void EditCategory(Category category) => Edit(category);
+    [RelayCommand] private void AddCategory() => Editor = new Category();
     [RelayCommand] private async Task SaveAsync() { await catalog.SaveCategoryAsync(Editor); await LoadAsync(); }
 }
 
@@ -342,21 +404,128 @@ public partial class UserManagementViewModel(PharmaDeskDbContext db, IToastServi
     public ObservableCollection<User> Users { get; } = new();
     public async Task LoadAsync() { Title = "Utilizatori"; Users.Clear(); foreach (var u in await db.Users.Include(x => x.Role).AsNoTracking().OrderBy(x => x.Username).ToListAsync()) Users.Add(u); }
     [RelayCommand] private async Task ToggleActiveAsync(User user) { var entity = await db.Users.FirstAsync(x => x.Id == user.Id); entity.IsActive = !entity.IsActive; await db.SaveChangesAsync(); toast.Show(entity.IsActive ? "Utilizator activat." : "Utilizator dezactivat."); await LoadAsync(); }
+    [RelayCommand] private void ViewUser(User u) { /* placeholder — show details dialog in future */ }
+    [RelayCommand] private void EditRole(User u) { /* placeholder — toggle role in future */ }
 }
 
 public partial class AdminOrdersViewModel(IOrderService orders, IToastService toast) : ViewModelBase
 {
     public ObservableCollection<Order> Orders { get; } = new();
-    public async Task LoadAsync() { Title = "Comenzi primite"; Orders.Clear(); foreach (var o in await orders.GetAllOrdersAsync()) Orders.Add(o); }
+    public ObservableCollection<Order> FilteredOrders { get; } = new();
+
+    [ObservableProperty] private string selectedFilter = "All";
+    [ObservableProperty] private Order? selectedOrder;
+
+    public int AllCount => Orders.Count;
+    public int PendingCount => Orders.Count(o => o.Status == "Noua" || o.Status == "Pending");
+    public int CompletedCount => Orders.Count(o => o.Status == "Livrata" || o.Status == "Completed");
+    public int CancelledCount => Orders.Count(o => o.Status == "Anulata" || o.Status == "Cancelled");
+
+    public async Task LoadAsync()
+    {
+        Title = "Comenzi primite";
+        Orders.Clear();
+        foreach (var o in await orders.GetAllOrdersAsync()) Orders.Add(o);
+        ApplyFilter();
+    }
+
+    [RelayCommand] private void Filter(string filter) { SelectedFilter = filter; ApplyFilter(); }
+    [RelayCommand] private void ViewOrder(Order order) { SelectedOrder = order; }
+    [RelayCommand] private async Task UpdateStatus(Order order) { await orders.MarkShippedAsync(order.Id); toast.Show($"Status actualizat."); await LoadAsync(); }
+    [RelayCommand] private void Export() { toast.Show("Export not yet implemented."); }
+
+    // Keep backward compat alias
     [RelayCommand] private async Task ShipAsync(Order order) { await orders.MarkShippedAsync(order.Id); toast.Show($"Comanda {order.OrderNumber} marcata ca expediata."); await LoadAsync(); }
+
+    private void ApplyFilter()
+    {
+        FilteredOrders.Clear();
+        var filtered = SelectedFilter switch
+        {
+            "Pending" => Orders.Where(o => o.Status == "Noua" || o.Status == "Pending"),
+            "Completed" => Orders.Where(o => o.Status == "Livrata" || o.Status == "Completed"),
+            "Cancelled" => Orders.Where(o => o.Status == "Anulata" || o.Status == "Cancelled"),
+            _ => Orders.AsEnumerable()
+        };
+        foreach (var o in filtered) FilteredOrders.Add(o);
+        OnPropertyChanged(nameof(AllCount));
+        OnPropertyChanged(nameof(PendingCount));
+        OnPropertyChanged(nameof(CompletedCount));
+        OnPropertyChanged(nameof(CancelledCount));
+    }
 }
 
-public partial class ReportsViewModel(IReportService reports, IToastService toast) : ViewModelBase
+public partial class ReportsViewModel(IReportService reports, IToastService toast, PharmaDeskDbContext db) : ViewModelBase
 {
     [ObservableProperty] private DateTime from = DateTime.Today.AddMonths(-1);
     [ObservableProperty] private DateTime to = DateTime.Today;
     [ObservableProperty] private string lastReportPath = string.Empty;
-    public Task LoadAsync() { Title = "Rapoarte"; return Task.CompletedTask; }
+
+    [ObservableProperty] private ISeries[] revenueByMonthSeries = [];
+    [ObservableProperty] private Axis[] revenueXAxes = [new Axis()];
+    [ObservableProperty] private Axis[] revenueYAxes = [new Axis()];
+    [ObservableProperty] private ISeries[] orderStatusSeries = [];
+    [ObservableProperty] private ISeries[] topProductsSeries = [];
+    [ObservableProperty] private Axis[] topProductsXAxes = [new Axis()];
+    [ObservableProperty] private Axis[] topProductsYAxes = [new Axis()];
+    [ObservableProperty] private decimal totalRevenue;
+    [ObservableProperty] private int totalOrders;
+    [ObservableProperty] private int totalProducts;
+    [ObservableProperty] private int totalUsers;
+
+    public async Task LoadAsync()
+    {
+        Title = "Rapoarte";
+
+        TotalOrders = await db.Orders.CountAsync();
+        TotalProducts = await db.Medicines.CountAsync();
+        TotalUsers = await db.Users.CountAsync();
+        TotalRevenue = await db.Orders.SumAsync(o => (decimal?)o.GrandTotal) ?? 0;
+
+        // Revenue by month (last 6 months)
+        var sixMonthsAgo = DateTime.Today.AddMonths(-6);
+        var revenueData = await db.Orders
+            .Where(o => o.OrderDate >= sixMonthsAgo)
+            .GroupBy(o => new { o.OrderDate.Year, o.OrderDate.Month })
+            .Select(g => new { g.Key.Year, g.Key.Month, Total = g.Sum(o => o.GrandTotal) })
+            .OrderBy(x => x.Year).ThenBy(x => x.Month)
+            .ToListAsync();
+
+        RevenueByMonthSeries = [new ColumnSeries<decimal>
+        {
+            Values = revenueData.Select(x => x.Total).ToArray(),
+            Fill = new SolidColorPaint(new SKColor(0xFC, 0xA3, 0x11))
+        }];
+        RevenueXAxes = [new Axis { Labels = revenueData.Select(x => $"{x.Month}/{x.Year % 100}").ToArray(), TextSize = 11 }];
+        RevenueYAxes = [new Axis { TextSize = 11 }];
+
+        // Order status donut
+        var pending = await db.Orders.CountAsync(o => o.Status == "Noua" || o.Status == "Pending");
+        var completed = await db.Orders.CountAsync(o => o.Status == "Livrata" || o.Status == "Completed");
+        var cancelled = await db.Orders.CountAsync(o => o.Status == "Anulata" || o.Status == "Cancelled");
+        OrderStatusSeries = [
+            new PieSeries<int> { Values = [pending], Name = "Pending", Fill = new SolidColorPaint(new SKColor(0xFC,0xA3,0x11)), InnerRadius = 60 },
+            new PieSeries<int> { Values = [completed], Name = "Completed", Fill = new SolidColorPaint(new SKColor(0x22,0xC5,0x5E)), InnerRadius = 60 },
+            new PieSeries<int> { Values = [cancelled], Name = "Cancelled", Fill = new SolidColorPaint(new SKColor(0xEF,0x44,0x44)), InnerRadius = 60 }
+        ];
+
+        // Top products (by order items quantity)
+        var topProducts = await db.OrderItems
+            .GroupBy(i => i.Medicine!.Name)
+            .Select(g => new { Name = g.Key, Count = g.Sum(i => i.Quantity) })
+            .OrderByDescending(x => x.Count)
+            .Take(5)
+            .ToListAsync();
+
+        TopProductsSeries = [new ColumnSeries<int>
+        {
+            Values = topProducts.Select(x => x.Count).ToArray(),
+            Fill = new SolidColorPaint(new SKColor(0xFC, 0xA3, 0x11))
+        }];
+        TopProductsXAxes = [new Axis { Labels = topProducts.Select(x => x.Name).ToArray(), TextSize = 10 }];
+        TopProductsYAxes = [new Axis { TextSize = 11 }];
+    }
+
     [RelayCommand] private async Task ExportExcelAsync() { LastReportPath = await reports.ExportSalesExcelAsync(From, To); toast.Show("Raport Excel generat."); }
     [RelayCommand] private async Task ExportPdfAsync() { LastReportPath = await reports.ExportSalesPdfAsync(From, To); toast.Show("Raport PDF generat."); }
 }
@@ -364,5 +533,24 @@ public partial class ReportsViewModel(IReportService reports, IToastService toas
 public partial class AuditLogViewModel(IAuditService audit) : ViewModelBase
 {
     public ObservableCollection<AuditLog> Logs { get; } = new();
-    public async Task LoadAsync() { Title = "Audit log"; Logs.Clear(); foreach (var l in await audit.GetLogsAsync()) Logs.Add(l); }
+    public ObservableCollection<AuditLog> LogEntries { get; } = new();
+
+    [ObservableProperty] private DateTime? dateFrom;
+    [ObservableProperty] private DateTime? dateTo;
+    [ObservableProperty] private string selectedActionType = "All";
+    public ObservableCollection<string> ActionTypes { get; } = new(new[] { "All", "Create", "Update", "Delete", "Login" });
+
+    public async Task LoadAsync()
+    {
+        Title = "Audit log";
+        Logs.Clear();
+        LogEntries.Clear();
+        foreach (var l in await audit.GetLogsAsync())
+        {
+            Logs.Add(l);
+            LogEntries.Add(l);
+        }
+    }
+
+    [RelayCommand] private async Task ApplyFilter() => await LoadAsync();
 }

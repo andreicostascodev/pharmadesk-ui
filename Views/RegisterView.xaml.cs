@@ -1,4 +1,5 @@
 using System.Windows;
+using PharmaDesk.ViewModels;
 
 namespace PharmaDesk.Views;
 
@@ -9,16 +10,9 @@ public partial class RegisterView : Window
         InitializeComponent();
     }
 
-    private void BtnCreateAccount_Click(object sender, RoutedEventArgs e)
+    private void TxtPassword_PasswordChanged(object sender, RoutedEventArgs e)
     {
-        // TODO: wire to existing registration service
-        new LoginView().Show();
-        Close();
-    }
-
-    private void BtnLogin_Click(object sender, RoutedEventArgs e)
-    {
-        new LoginView().Show();
-        Close();
+        if (DataContext is RegisterViewModel vm)
+            vm.Password = TxtPassword.Password;
     }
 }

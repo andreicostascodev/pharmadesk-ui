@@ -35,8 +35,9 @@
                 <TextBlock Text="Sign in to your account"
                            Style="{StaticResource CardLabel}" Margin="0,0,0,32" />
 
-                <TextBlock Text="Email" Style="{StaticResource CardLabel}" Margin="0,0,0,6" />
-                <TextBox x:Name="TxtEmail" Height="40"
+                <TextBlock Text="Email / Username" Style="{StaticResource CardLabel}" Margin="0,0,0,6" />
+                <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
+                         Height="40"
                          Background="{DynamicResource SurfaceBrush}"
                          Foreground="{DynamicResource TextPrimaryBrush}"
                          BorderBrush="{DynamicResource ThemeBorderBrush}"
@@ -45,22 +46,28 @@
                          FontSize="14" Margin="0,0,0,16" />
 
                 <TextBlock Text="Password" Style="{StaticResource CardLabel}" Margin="0,0,0,6" />
+                <!-- PasswordBox cannot bind directly; use a helper via code-behind -->
                 <PasswordBox x:Name="TxtPassword" Height="40"
                              Background="{DynamicResource SurfaceBrush}"
                              Foreground="{DynamicResource TextPrimaryBrush}"
                              BorderBrush="{DynamicResource ThemeBorderBrush}"
                              BorderThickness="1" Padding="12,0"
                              VerticalContentAlignment="Center"
-                             FontSize="14" Margin="0,0,0,24" />
+                             FontSize="14" Margin="0,0,0,8"
+                             PasswordChanged="TxtPassword_PasswordChanged"/>
+
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="#FFEF4444"
+                           FontSize="12" Margin="0,0,0,16"
+                           Visibility="{Binding ErrorMessage, Converter={StaticResource NotNullConverter}}"/>
 
                 <Button Content="Sign In" Style="{StaticResource PrimaryButton}"
                         Height="44" HorizontalAlignment="Stretch"
-                        Click="BtnLogin_Click" />
+                        Command="{Binding LoginCommand}" />
 
                 <TextBlock Margin="0,20,0,0" TextAlignment="Center">
                     <Run Text="Don't have an account? "
                          Foreground="{DynamicResource TextSecondaryBrush}" />
-                    <Hyperlink Click="BtnRegister_Click">Register</Hyperlink>
+                    <Hyperlink Command="{Binding DataContext.GoRegisterCommand, RelativeSource={RelativeSource AncestorType=Window}}">Register</Hyperlink>
                 </TextBlock>
             </StackPanel>
         </Border>

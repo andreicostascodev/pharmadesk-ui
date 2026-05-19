@@ -152,29 +152,29 @@
                 </DataGrid.CellStyle>
 
                 <DataGrid.Columns>
-                    <!-- Order ID (monospace) -->
-                    <DataGridTemplateColumn Header="Order ID" Width="120" SortMemberPath="OrderId" CanUserSort="True">
+                    <!-- Order Number (monospace) -->
+                    <DataGridTemplateColumn Header="Order ID" Width="120" SortMemberPath="OrderNumber" CanUserSort="True">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock FontFamily="Cascadia Code, Consolas" FontSize="13"
-                                           Text="{Binding OrderId}" VerticalAlignment="Center"
+                                           Text="{Binding OrderNumber}" VerticalAlignment="Center"
                                            Foreground="{DynamicResource TextSecondaryBrush}"/>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
 
                     <!-- Customer -->
-                    <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="*" CanUserSort="True"/>
+                    <DataGridTextColumn Header="Customer" Binding="{Binding User.FullName}" Width="*" CanUserSort="True"/>
 
                     <!-- Items count -->
-                    <DataGridTextColumn Header="Items" Binding="{Binding ItemCount}" Width="60" CanUserSort="True"/>
+                    <DataGridTextColumn Header="Items" Binding="{Binding Items.Count}" Width="60" CanUserSort="True"/>
 
                     <!-- Total -->
-                    <DataGridTemplateColumn Header="Total" Width="100" SortMemberPath="Total" CanUserSort="True">
+                    <DataGridTemplateColumn Header="Total" Width="100" SortMemberPath="GrandTotal" CanUserSort="True">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock VerticalAlignment="Center">
-                                    <Run Text="lei "/><Run Text="{Binding Total, StringFormat=N2}"/>
+                                    <Run Text="lei "/><Run Text="{Binding GrandTotal, StringFormat=N2}"/>
                                 </TextBlock>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
@@ -192,7 +192,13 @@
                                                 <DataTrigger Binding="{Binding Status, StringFormat={}{0}}" Value="Completed">
                                                     <Setter Property="Background" Value="#3322C55E"/>
                                                 </DataTrigger>
+                                                <DataTrigger Binding="{Binding Status, StringFormat={}{0}}" Value="Livrata">
+                                                    <Setter Property="Background" Value="#3322C55E"/>
+                                                </DataTrigger>
                                                 <DataTrigger Binding="{Binding Status, StringFormat={}{0}}" Value="Cancelled">
+                                                    <Setter Property="Background" Value="#33EF4444"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Status, StringFormat={}{0}}" Value="Anulata">
                                                     <Setter Property="Background" Value="#33EF4444"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
@@ -206,7 +212,13 @@
                                                     <DataTrigger Binding="{Binding Status, StringFormat={}{0}}" Value="Completed">
                                                         <Setter Property="Foreground" Value="#FF22C55E"/>
                                                     </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Status, StringFormat={}{0}}" Value="Livrata">
+                                                        <Setter Property="Foreground" Value="#FF22C55E"/>
+                                                    </DataTrigger>
                                                     <DataTrigger Binding="{Binding Status, StringFormat={}{0}}" Value="Cancelled">
+                                                        <Setter Property="Foreground" Value="#FFEF4444"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Status, StringFormat={}{0}}" Value="Anulata">
                                                         <Setter Property="Foreground" Value="#FFEF4444"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
@@ -218,8 +230,8 @@
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
 
-                    <!-- Time -->
-                    <DataGridTextColumn Header="Time" Binding="{Binding TimeAgo}" Width="120" CanUserSort="False"/>
+                    <!-- Date -->
+                    <DataGridTextColumn Header="Date" Binding="{Binding OrderDate, StringFormat='dd MMM yyyy'}" Width="120" CanUserSort="True"/>
 
                     <!-- Actions -->
                     <DataGridTemplateColumn Header="Actions" Width="200" CanUserSort="False">

@@ -1,4 +1,5 @@
 using System.Windows;
+using PharmaDesk.ViewModels;
 
 namespace PharmaDesk.Views;
 
@@ -9,17 +10,9 @@ public partial class LoginView : Window
         InitializeComponent();
     }
 
-    private void BtnLogin_Click(object sender, RoutedEventArgs e)
+    private void TxtPassword_PasswordChanged(object sender, RoutedEventArgs e)
     {
-        // TODO: wire to existing auth service
-        var main = new MainWindow();
-        main.Show();
-        Close();
-    }
-
-    private void BtnRegister_Click(object sender, RoutedEventArgs e)
-    {
-        new RegisterView().Show();
-        Close();
+        if (DataContext is LoginViewModel vm)
+            vm.Password = TxtPassword.Password;
     }
 }
