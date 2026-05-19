@@ -78,7 +78,7 @@
                         </Button.Style>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="Completed" VerticalAlignment="Center"/>
-                            <Border CornerRadius="10" Background="#FF22C55E" Margin="6,0,0,0" Padding="6,1">
+                            <Border CornerRadius="10" Background="#FFFCA311" Margin="6,0,0,0" Padding="6,1">
                                 <TextBlock Text="{Binding CompletedCount}" FontSize="11" Foreground="#FF000000"/>
                             </Border>
                         </StackPanel>
@@ -98,8 +98,8 @@
                         </Button.Style>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="Cancelled" VerticalAlignment="Center"/>
-                            <Border CornerRadius="10" Background="#FFEF4444" Margin="6,0,0,0" Padding="6,1">
-                                <TextBlock Text="{Binding CancelledCount}" FontSize="11" Foreground="#FFFFFFFF"/>
+                            <Border CornerRadius="10" Background="#FFFCA311" Margin="6,0,0,0" Padding="6,1">
+                                <TextBlock Text="{Binding CancelledCount}" FontSize="11" Foreground="#FF000000"/>
                             </Border>
                         </StackPanel>
                     </Button>

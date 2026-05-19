@@ -108,31 +108,28 @@
                         <TextBlock Text="Edit Product" Style="{StaticResource SectionHeading}" Margin="0,0,0,16"/>
 
                         <!-- Image upload zone -->
-                        <Border x:Name="ImageDropZone"
-                                Height="140" CornerRadius="8"
-                                AllowDrop="True"
-                                DragOver="ImageDropZone_DragOver"
-                                DragLeave="ImageDropZone_DragLeave"
-                                Drop="ImageDropZone_Drop"
-                                Margin="0,0,0,16"
-                                Cursor="Hand">
-                            <Border.Style>
-                                <Style TargetType="Border">
-                                    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderBrush}"/>
-                                    <Setter Property="BorderThickness" Value="2"/>
-                                    <!-- Dashed border via custom approach — see note -->
-                                </Style>
-                            </Border.Style>
+                        <Grid x:Name="ImageDropZone"
+                              Height="140"
+                              AllowDrop="True"
+                              DragOver="ImageDropZone_DragOver"
+                              DragLeave="ImageDropZone_DragLeave"
+                              Drop="ImageDropZone_Drop"
+                              Margin="0,0,0,16"
+                              Cursor="Hand">
+                            <!-- Dashed border via Rectangle -->
+                            <Rectangle x:Name="DropZoneRect"
+                                       Stroke="{DynamicResource ThemeBorderBrush}"
+                                       StrokeThickness="2"
+                                       StrokeDashArray="4 2"
+                                       RadiusX="8" RadiusY="8"/>
+                            <!-- Content -->
                             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                                 <TextBlock Text="&#x1F4F7;" FontSize="32" HorizontalAlignment="Center"/>
                                 <TextBlock Text="Drop image here or click to browse"
                                            Foreground="{DynamicResource TextSecondaryBrush}"
                                            FontSize="13" HorizontalAlignment="Center" Margin="0,8,0,0"/>
                             </StackPanel>
-                        </Border>
-                        <!-- Note: WPF Border does not natively support dashed border strokes.
-                             The DragOver handler changes BorderBrush to amber and BorderThickness to 2.
-                             True dashed effect can be achieved via Rectangle with StrokeDashArray if needed. -->
+                        </Grid>
 
                         <!-- Name field -->
                         <TextBlock Text="PRODUCT NAME" Style="{StaticResource CardLabel}" Margin="0,0,0,6"/>

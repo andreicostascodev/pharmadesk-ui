@@ -12,7 +12,7 @@ public partial class ProductManagementView : System.Windows.Controls.Page
         if (e.Data.GetDataPresent(DataFormats.FileDrop))
         {
             e.Effects = DragDropEffects.Copy;
-            ImageDropZone.BorderBrush = new SolidColorBrush(Color.FromRgb(0xFC, 0xA3, 0x11));
+            DropZoneRect.Stroke = new SolidColorBrush(Color.FromRgb(0xFC, 0xA3, 0x11));
         }
         else
         {
@@ -23,8 +23,7 @@ public partial class ProductManagementView : System.Windows.Controls.Page
 
     private void ImageDropZone_DragLeave(object sender, DragEventArgs e)
     {
-        // Reset to theme border — bind back via resource
-        ImageDropZone.ClearValue(System.Windows.Controls.Border.BorderBrushProperty);
+        DropZoneRect.ClearValue(System.Windows.Shapes.Rectangle.StrokeProperty);
     }
 
     private void ImageDropZone_Drop(object sender, DragEventArgs e)
@@ -37,6 +36,6 @@ public partial class ProductManagementView : System.Windows.Controls.Page
                 vm.SetImagePath(files[0]);
             }
         }
-        ImageDropZone.ClearValue(System.Windows.Controls.Border.BorderBrushProperty);
+        DropZoneRect.ClearValue(System.Windows.Shapes.Rectangle.StrokeProperty);
     }
 }
