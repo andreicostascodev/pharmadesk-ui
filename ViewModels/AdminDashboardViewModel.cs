@@ -50,10 +50,13 @@ public partial class AdminDashboardViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void SetRange(int days)
+    private void SetRange(string daysStr)
     {
-        SelectedRange = days;
-        LoadRevenueChart(days);
+        if (int.TryParse(daysStr, out int days))
+        {
+            SelectedRange = days;
+            LoadRevenueChart(days);
+        }
     }
 
     private void LoadData(int rangeDays)

@@ -198,7 +198,7 @@
                                             <TextBlock Text="{Binding Name}"
                                                        FontSize="13" FontWeight="SemiBold"
                                                        Foreground="{DynamicResource TextPrimaryBrush}" />
-                                            <Grid Height="6" Margin="0,4,0,0">
+                                            <Grid Height="6" Margin="0,4,0,0" Width="160" HorizontalAlignment="Left">
                                                 <Border Background="{DynamicResource ThemeBorderBrush}"
                                                         CornerRadius="3" />
                                                 <Border Background="{StaticResource AccentBrush}"
