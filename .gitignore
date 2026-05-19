@@ -1,0 +1,22 @@
+## .NET / Visual Studio
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.userprefs
+
+## NuGet
+packages/
+*.nupkg
+
+## Build output
+*.dll
+*.exe
+*.pdb
+!appsettings.json
+
+## OS
+.DS_Store
+Thumbs.db
+desktop.ini
