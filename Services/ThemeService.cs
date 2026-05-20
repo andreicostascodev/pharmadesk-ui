@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Windows;
 
 namespace PharmaDesk.Services;
@@ -63,11 +64,9 @@ public class ThemeService
         try
         {
             string raw  = File.Exists(SettingsPath) ? File.ReadAllText(SettingsPath) : "{}";
-            var doc     = JsonDocument.Parse(raw);
-            var dict    = doc.RootElement.EnumerateObject()
-                             .ToDictionary(p => p.Name, p => (object)p.Value.ToString());
-            dict["Theme"] = CurrentTheme.ToString();
-            File.WriteAllText(SettingsPath, JsonSerializer.Serialize(dict,
+            var node    = JsonNode.Parse(raw) as JsonObject ?? new JsonObject();
+            node["Theme"] = CurrentTheme.ToString();
+            File.WriteAllText(SettingsPath, node.ToJsonString(
                 new JsonSerializerOptions { WriteIndented = true }));
         }
         catch { /* non-fatal — theme preference loss is acceptable */ }
